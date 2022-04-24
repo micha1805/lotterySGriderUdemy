@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "mocha"
+    "test": "mocha",
+    "kanye": "curl -s 'https://api.kanye.rest' | jq '.quote'| tr -d '\"'"
   },
   "author": "",
   "license": "ISC",
