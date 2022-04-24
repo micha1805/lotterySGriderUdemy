@@ -21,9 +21,6 @@ beforeEach(async ()=>{
 })
 
 
-console.log("O.01 ETH", web3.utils.toWei('0.01', 'ether'))
-
-
 describe('Lottery', ()=>{
 
 	it('deploys the contract', ()=>{
@@ -34,7 +31,7 @@ describe('Lottery', ()=>{
 
 		const value = web3.utils.toWei('0.02', 'ether')
 
-		const enterTx = await lottery.methods.enter().send({
+		await lottery.methods.enter().send({
 			from: accounts[0],
 			value: value
 		})
@@ -89,15 +86,15 @@ describe('Lottery', ()=>{
 		}
 	})
 
-	it('Only manager can enter pickWinner method', ()=> {
+	it('Only manager can enter pickWinner method', async ()=> {
 
 
 		try{
 			await lottery.methods.pickWinner().send({
 				from: accounts[0]
 			})
-			// There is a HUGE BUG HERE : if the previous line does NOT throw an error, the
-			// following :
+			// There is a HUGE BUG HERE (and in all similar places) : if the previous line
+			// does NOT throw an error, the following :
 			// assert(false)
 			// WILL, and the test will ALWAYS pass because throwing an error means
 			// going into the catch thus passing the test
@@ -106,6 +103,31 @@ describe('Lottery', ()=>{
 		}catch(e){
 			assert(e)
 		}
+	})
+
+	it('send money to winner and resets the players array', async ()=> {
+
+		const value = web3.utils.toWei('2', 'ether')
+
+		await lottery.methods.enter().send({
+			from: accounts[0],
+			value: value
+		})
+
+		const initialBalance = await web3.eth.getBalance(accounts[0])
+
+		await lottery.methods.pickWinner().send({ from: accounts[0] })
+
+		const finalBalance =  await web3.eth.getBalance(accounts[0])
+
+		const difference = finalBalance - initialBalance
+
+		console.log("Difference : ", difference)
+
+		// The difference is not exactly 2 ETH because of the gas fees, we
+		// approximate by guessing it's at least greate than 1.8 ETH :
+		assert(difference > web3.utils.toWei('1.8', 'ether'))
+
 	})
 
 
